@@ -73,7 +73,8 @@ export default function Users(){
       } else if (res.data.status === 'completed' || res.data.status === 'failed' || res.data.status === 'cancelled') {
         setIsImporting(false)
         localStorage.removeItem('importJobId')
-        setImportJobId(null)
+        // DON'T clear importJobId yet - we need it for downloading the password CSV
+        // It will be cleared when the dialog is closed
         if (res.data.status === 'completed' || res.data.status === 'cancelled') {
           await load() // Refresh user list
         }
@@ -257,7 +258,10 @@ export default function Users(){
   }
 
   async function downloadPasswordsCsv(){
-    if (!importJobId) return
+    if (!importJobId) {
+      setError('Import session expired. Please import again to download passwords.')
+      return
+    }
     try {
       const res = await api.get(`/users/import-download-csv/${importJobId}`, {
         responseType: 'blob'
@@ -271,6 +275,10 @@ export default function Users(){
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
+      
+      // Show success message
+      setError('✅ Password CSV downloaded successfully!')
+      setTimeout(() => setError(null), 3000)
     } catch (err: any) {
       setError(err?.response?.data?.error ?? 'CSV download failed')
     }
