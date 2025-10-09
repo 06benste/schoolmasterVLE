@@ -805,6 +805,27 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                       </button>
                     </div>
 
+                    {/* List Type */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: '500' }}>List:</label>
+                      <select
+                        value={block.formatting?.listType || 'none'}
+                        onChange={(e) => updateNestedBlock(block.id, { 
+                          formatting: { ...block.formatting, listType: e.target.value as any }
+                        })}
+                        style={{ 
+                          padding: '4px 8px', 
+                          border: '1px solid var(--border)', 
+                          borderRadius: '4px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <option value="none">None</option>
+                        <option value="bullet">Bullet Points</option>
+                        <option value="numbered">Numbered List</option>
+                      </select>
+                    </div>
+
                     {/* Line Height */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <label style={{ fontSize: '12px', fontWeight: '500' }}>Line Height:</label>
@@ -825,27 +846,6 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                         max="3"
                         step="0.1"
                       />
-                    </div>
-
-                    {/* List Type */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <label style={{ fontSize: '12px', fontWeight: '500' }}>List:</label>
-                      <select
-                        value={block.formatting?.listType || 'none'}
-                        onChange={(e) => updateNestedBlock(block.id, { 
-                          formatting: { ...block.formatting, listType: e.target.value as any }
-                        })}
-                        style={{ 
-                          padding: '4px 8px', 
-                          border: '1px solid var(--border)', 
-                          borderRadius: '4px',
-                          fontSize: '12px'
-                        }}
-                      >
-                        <option value="none">None</option>
-                        <option value="bullet">Bullet Points</option>
-                        <option value="numbered">Numbered List</option>
-                      </select>
                     </div>
                   </div>
 
@@ -2714,7 +2714,7 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
     <div style={{ display: 'flex', height: '100vh', backgroundColor: 'var(--bg)' }}>
       {/* Block Palette */}
       <div style={{
-        width: '250px',
+        width: '280px',
         backgroundColor: 'var(--panel)',
         borderRight: '1px solid var(--border)',
         padding: '16px',
@@ -2793,7 +2793,7 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
         <div 
           style={{
             flex: 1,
-            padding: '20px',
+            padding: '20px 40px',
             paddingBottom: '100px', // Add extra padding at bottom for drag targets
             overflowY: 'auto',
             backgroundColor: isPreviewMode ? 'var(--bg)' : '#f8f9fa',
@@ -2820,7 +2820,7 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
               <p>Drag blocks from the left panel to create your content</p>
             </div>
           ) : (
-            <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px' }}>
+            <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
               {blocks.map((block, index) => (
                 <div key={block.id} data-block-id={block.id}>
                   {/* Drop indicator line */}
