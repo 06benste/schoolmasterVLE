@@ -805,37 +805,39 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                       >
                         U
                       </button>
-                    </div>
-
-                    {/* List Type */}
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '4px',
-                      backgroundColor: block.formatting?.listType && block.formatting.listType !== 'none' ? '#e3f2fd' : 'transparent',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      border: block.formatting?.listType && block.formatting.listType !== 'none' ? '1px solid #2196f3' : '1px solid transparent'
-                    }}>
-                      <label style={{ fontSize: '12px', fontWeight: '600', color: block.formatting?.listType && block.formatting.listType !== 'none' ? '#1565c0' : 'var(--text)' }}>List:</label>
-                      <select
-                        value={block.formatting?.listType || 'none'}
-                        onChange={(e) => updateNestedBlock(block.id, { 
-                          formatting: { ...block.formatting, listType: e.target.value as any }
-                        })}
-                        style={{ 
-                          padding: '4px 8px', 
-                          border: '1px solid var(--border)', 
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          backgroundColor: 'white',
-                          fontWeight: block.formatting?.listType && block.formatting.listType !== 'none' ? '600' : 'normal'
-                        }}
-                      >
-                        <option value="none">None</option>
-                        <option value="bullet">Bullet Points</option>
-                        <option value="numbered">Numbered List</option>
-                      </select>
+                      
+                      {/* List Type - Inline with formatting buttons */}
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '4px',
+                        backgroundColor: block.formatting?.listType && block.formatting.listType !== 'none' ? '#e3f2fd' : '#f0f0f0',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: block.formatting?.listType && block.formatting.listType !== 'none' ? '2px solid #2196f3' : '1px solid #ddd',
+                        marginLeft: '8px'
+                      }}>
+                        <label style={{ fontSize: '12px', fontWeight: '600', color: block.formatting?.listType && block.formatting.listType !== 'none' ? '#1565c0' : '#333' }}>List:</label>
+                        <select
+                          value={block.formatting?.listType || 'none'}
+                          onChange={(e) => updateNestedBlock(block.id, { 
+                            formatting: { ...block.formatting, listType: e.target.value as any }
+                          })}
+                          style={{ 
+                            padding: '4px 8px', 
+                            border: '1px solid #ccc', 
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            backgroundColor: 'white',
+                            fontWeight: '600',
+                            color: '#333'
+                          }}
+                        >
+                          <option value="none">None</option>
+                          <option value="bullet">Bullet Points</option>
+                          <option value="numbered">Numbered List</option>
+                        </select>
+                      </div>
                     </div>
 
                     {/* Line Height */}
