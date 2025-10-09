@@ -1,5 +1,7 @@
 # School Master VLE
 
+THIS SOFTWARE IS IN EARLY DEVELOPMENT. DO NOT RELY ON IT FOR DEPLOYMENT
+
 A full-stack learning management system for educational institutions. Built with React, TypeScript, Express, and SQLite.
 
 ## Features
