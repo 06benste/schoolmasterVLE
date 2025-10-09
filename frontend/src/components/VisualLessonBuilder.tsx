@@ -643,7 +643,9 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                     padding: '12px',
                     backgroundColor: 'var(--panel)',
                     borderRadius: '6px',
-                    border: '1px solid var(--border)'
+                    border: '1px solid var(--border)',
+                    minHeight: '60px',
+                    alignItems: 'center'
                   }}>
                     {/* Font Family */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -806,8 +808,16 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                     </div>
 
                     {/* List Type */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <label style={{ fontSize: '12px', fontWeight: '500' }}>List:</label>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '4px',
+                      backgroundColor: block.formatting?.listType && block.formatting.listType !== 'none' ? '#e3f2fd' : 'transparent',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      border: block.formatting?.listType && block.formatting.listType !== 'none' ? '1px solid #2196f3' : '1px solid transparent'
+                    }}>
+                      <label style={{ fontSize: '12px', fontWeight: '600', color: block.formatting?.listType && block.formatting.listType !== 'none' ? '#1565c0' : 'var(--text)' }}>List:</label>
                       <select
                         value={block.formatting?.listType || 'none'}
                         onChange={(e) => updateNestedBlock(block.id, { 
@@ -817,7 +827,9 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                           padding: '4px 8px', 
                           border: '1px solid var(--border)', 
                           borderRadius: '4px',
-                          fontSize: '12px'
+                          fontSize: '12px',
+                          backgroundColor: 'white',
+                          fontWeight: block.formatting?.listType && block.formatting.listType !== 'none' ? '600' : 'normal'
                         }}
                       >
                         <option value="none">None</option>
@@ -858,9 +870,10 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                       borderRadius: '4px',
                       fontSize: '12px',
                       color: '#1565c0',
-                      marginBottom: '12px'
+                      marginBottom: '12px',
+                      fontWeight: '500'
                     }}>
-                      Tip: Each line will become a {block.formatting.listType === 'bullet' ? 'bullet point' : 'numbered item'}. Press Enter for a new item.
+                      ✓ List mode active: Each line will become a {block.formatting.listType === 'bullet' ? 'bullet point' : 'numbered item'}. Press Enter for a new item.
                     </div>
                   )}
 
@@ -953,8 +966,7 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                     <option value={5}>H5</option>
                     <option value={6}>H6</option>
                   </select>
-                  <input
-                    type="text"
+                  <textarea
                     value={block.content}
                     onChange={(e) => updateNestedBlock(block.id, { content: e.target.value })}
                     onFocus={(e) => {
@@ -963,7 +975,15 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                         updateNestedBlock(block.id, { content: '' });
                       }
                     }}
-                    style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '4px' }}
+                    style={{ 
+                      width: '100%', 
+                      padding: '8px', 
+                      border: '1px solid var(--border)', 
+                      borderRadius: '4px',
+                      minHeight: '60px',
+                      resize: 'vertical',
+                      fontSize: '16px'
+                    }}
                     placeholder="Enter heading text..."
                   />
                 </div>
@@ -1315,13 +1335,14 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                             case 'heading':
                               const HeadingTag = `h${colBlock.level}` as keyof JSX.IntrinsicElements;
                               return (
-                                <HeadingTag style={{ 
-                                  fontSize: colBlock.size === 'small' ? '1.2em' : colBlock.size === 'large' ? '2em' : '1.5em',
-                                  margin: '8px 0 4px 0',
-                                  fontWeight: 'bold'
-                                }}>
-                                  {colBlock.content}
-                                </HeadingTag>
+                                <HeadingTag 
+                                  style={{ 
+                                    fontSize: colBlock.size === 'small' ? '1.2em' : colBlock.size === 'large' ? '2em' : '1.5em',
+                                    margin: '8px 0 4px 0',
+                                    fontWeight: 'bold'
+                                  }}
+                                  dangerouslySetInnerHTML={{ __html: colBlock.content.replace(/\n/g, '<br>') }}
+                                />
                               );
                             case 'image':
                               return (
@@ -1624,7 +1645,8 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
               style={{ 
                 fontSize: block.size === 'small' ? '1.2em' : block.size === 'large' ? '2.5em' : '1.8em',
                 margin: 0,
-                outline: 'none'
+                outline: 'none',
+                whiteSpace: 'pre-line'
               }}
             >
               {block.content}
