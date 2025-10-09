@@ -220,7 +220,9 @@ export default function Users(){
 
   async function handleCsvExport(){
     try {
-      const res = await api.get('/users/export-csv')
+      const res = await api.get('/users/export-csv', {
+        responseType: 'blob'
+      })
       const blob = new Blob([res.data], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -237,7 +239,9 @@ export default function Users(){
 
   async function downloadTemplate(){
     try {
-      const res = await api.get('/users/csv-template')
+      const res = await api.get('/users/csv-template', {
+        responseType: 'blob'
+      })
       const blob = new Blob([res.data], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -255,7 +259,9 @@ export default function Users(){
   async function downloadPasswordsCsv(){
     if (!importJobId) return
     try {
-      const res = await api.get(`/users/import-download-csv/${importJobId}`)
+      const res = await api.get(`/users/import-download-csv/${importJobId}`, {
+        responseType: 'blob'
+      })
       const blob = new Blob([res.data], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
