@@ -4,7 +4,18 @@ import { api } from '../../api/client'
 
 type Block =
   | { type: 'video'; url: string }
-  | { type: 'text'; content: string }
+  | { type: 'text'; content: string; formatting?: {
+      fontFamily?: string;
+      fontSize?: number;
+      color?: string;
+      backgroundColor?: string;
+      bold?: boolean;
+      italic?: boolean;
+      underline?: boolean;
+      textAlign?: 'left' | 'center' | 'right' | 'justify';
+      lineHeight?: number;
+      listType?: 'none' | 'bullet' | 'numbered';
+    }; links?: Array<{ id: string; text: string; url: string; start: number; end: number }> }
   | { type: 'quiz'; question: string; options: string[]; answerIndex: number }
   | { type: 'fillblank'; prompt: string; answer: string }
   | { type: 'image'; url: string; alt: string; caption?: string; width?: number; height?: number }
@@ -101,7 +112,57 @@ export default function LessonPlayer(){
       {blocks.map((b, i) => (
         <div className="card" key={i}>
           {b.type==='text' && (
-            <div>{b.content}</div>
+            <div 
+              style={{
+                fontFamily: b.formatting?.fontFamily || 'Arial, sans-serif',
+                fontSize: b.formatting?.fontSize ? `${b.formatting.fontSize}px` : '1em',
+                color: b.formatting?.color || '#000000',
+                backgroundColor: b.formatting?.backgroundColor || 'transparent',
+                fontWeight: b.formatting?.bold ? 'bold' : 'normal',
+                fontStyle: b.formatting?.italic ? 'italic' : 'normal',
+                textDecoration: b.formatting?.underline ? 'underline' : 'none',
+                textAlign: b.formatting?.textAlign || 'left',
+                lineHeight: b.formatting?.lineHeight || 1.5,
+                whiteSpace: b.formatting?.listType === 'bullet' || b.formatting?.listType === 'numbered' ? 'normal' : 'pre-wrap'
+              }}
+              dangerouslySetInnerHTML={{ 
+                __html: (() => {
+                  const listType = b.formatting?.listType;
+                  let formatted = b.content;
+                  
+                  // Handle list formatting
+                  if (listType === 'bullet' || listType === 'numbered') {
+                    const lines = b.content.split('\n').filter(line => line.trim());
+                    if (lines.length > 0) {
+                      const listTag = listType === 'numbered' ? 'ol' : 'ul';
+                      const listItems = lines.map(line => `<li>${line.trim()}</li>`).join('');
+                      return `<${listTag}>${listItems}</${listTag}>`;
+                    }
+                  }
+                  
+                  // Convert line breaks to <br> for regular text
+                  formatted = formatted.replace(/\n/g, '<br>');
+                  
+                  // Handle links for non-list content
+                  if (b.links && b.links.length > 0 && listType !== 'bullet' && listType !== 'numbered') {
+                    let result = formatted;
+                    let offset = 0;
+                    
+                    b.links.forEach(link => {
+                      const beforeLink = result.substring(0, link.start + offset);
+                      const afterLink = result.substring(link.end + offset);
+                      const linkElement = `<a href="${link.url}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: underline;">${link.text}</a>`;
+                      result = beforeLink + linkElement + afterLink;
+                      offset += linkElement.length - link.text.length;
+                    });
+                    
+                    return result;
+                  }
+                  
+                  return formatted;
+                })()
+              }}
+            />
           )}
           {b.type==='video' && (
             <div>
@@ -405,7 +466,41 @@ export default function LessonPlayer(){
                         {(() => {
                           switch (colBlock.type) {
                             case 'text':
-                              return <div dangerouslySetInnerHTML={{ __html: colBlock.content.replace(/\n/g, '<br>') }} />;
+                              return (
+                                <div 
+                                  style={{
+                                    fontFamily: colBlock.formatting?.fontFamily || 'Arial, sans-serif',
+                                    fontSize: colBlock.formatting?.fontSize ? `${colBlock.formatting.fontSize}px` : '1em',
+                                    color: colBlock.formatting?.color || '#000000',
+                                    backgroundColor: colBlock.formatting?.backgroundColor || 'transparent',
+                                    fontWeight: colBlock.formatting?.bold ? 'bold' : 'normal',
+                                    fontStyle: colBlock.formatting?.italic ? 'italic' : 'normal',
+                                    textDecoration: colBlock.formatting?.underline ? 'underline' : 'none',
+                                    textAlign: colBlock.formatting?.textAlign || 'left',
+                                    lineHeight: colBlock.formatting?.lineHeight || 1.5,
+                                    whiteSpace: colBlock.formatting?.listType === 'bullet' || colBlock.formatting?.listType === 'numbered' ? 'normal' : 'pre-wrap'
+                                  }}
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: (() => {
+                                      const listType = colBlock.formatting?.listType;
+                                      let formatted = colBlock.content;
+                                      
+                                      // Handle list formatting
+                                      if (listType === 'bullet' || listType === 'numbered') {
+                                        const lines = colBlock.content.split('\n').filter(line => line.trim());
+                                        if (lines.length > 0) {
+                                          const listTag = listType === 'numbered' ? 'ol' : 'ul';
+                                          const listItems = lines.map(line => `<li>${line.trim()}</li>`).join('');
+                                          return `<${listTag}>${listItems}</${listTag}>`;
+                                        }
+                                      }
+                                      
+                                      // Convert line breaks to <br> for regular text
+                                      return formatted.replace(/\n/g, '<br>');
+                                    })()
+                                  }}
+                                />
+                              );
                             case 'heading':
                               const HeadingTag = `h${colBlock.level}` as keyof JSX.IntrinsicElements;
                               return (

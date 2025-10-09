@@ -14,6 +14,7 @@ type VisualBlock =
       underline?: boolean;
       textAlign?: 'left' | 'center' | 'right' | 'justify';
       lineHeight?: number;
+      listType?: 'none' | 'bullet' | 'numbered';
     }; links?: Array<{ id: string; text: string; url: string; start: number; end: number }> }
   | { type: 'image'; id: string; url: string; alt: string; caption?: string; width?: number; height?: number }
   | { type: 'video'; id: string; url: string; width?: number; height?: number }
@@ -825,7 +826,43 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                         step="0.1"
                       />
                     </div>
+
+                    {/* List Type */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: '500' }}>List:</label>
+                      <select
+                        value={block.formatting?.listType || 'none'}
+                        onChange={(e) => updateNestedBlock(block.id, { 
+                          formatting: { ...block.formatting, listType: e.target.value as any }
+                        })}
+                        style={{ 
+                          padding: '4px 8px', 
+                          border: '1px solid var(--border)', 
+                          borderRadius: '4px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <option value="none">None</option>
+                        <option value="bullet">Bullet Points</option>
+                        <option value="numbered">Numbered List</option>
+                      </select>
+                    </div>
                   </div>
+
+                  {/* List formatting help text */}
+                  {(block.formatting?.listType === 'bullet' || block.formatting?.listType === 'numbered') && (
+                    <div style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#e3f2fd',
+                      border: '1px solid #2196f3',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      color: '#1565c0',
+                      marginBottom: '12px'
+                    }}>
+                      Tip: Each line will become a {block.formatting.listType === 'bullet' ? 'bullet point' : 'numbered item'}. Press Enter for a new item.
+                    </div>
+                  )}
 
                   {/* Text Content with Live Preview */}
                 <textarea
@@ -854,7 +891,11 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                       textAlign: block.formatting?.textAlign || 'left',
                       lineHeight: block.formatting?.lineHeight || 1.5
                   }}
-                  placeholder="Enter your text here..."
+                  placeholder={
+                    block.formatting?.listType === 'bullet' ? "Enter each bullet point on a new line:\nFirst item\nSecond item\nThird item" :
+                    block.formatting?.listType === 'numbered' ? "Enter each numbered item on a new line:\nFirst item\nSecond item\nThird item" :
+                    "Enter your text here..."
+                  }
                 />
 
                   {/* Live Preview */}
@@ -1055,28 +1096,27 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
   const renderPreviewBlock = (block: VisualBlock) => {
     switch (block.type) {
       case 'text':
-        const renderTextWithLinks = (content: string, links: any[] = []) => {
+        const renderTextWithLinks = (content: string, links: any[] = [], listType?: 'none' | 'bullet' | 'numbered') => {
           if (!content) return '';
           
-          // First, convert line breaks to <br> tags
-          let formatted = content.replace(/\n/g, '<br>');
+          let formatted = content;
           
-          // Handle bullet points (lines starting with - or •)
-          formatted = formatted.replace(/(<br>|^)(\s*)([-•]\s+)([^<]*?)(<br>|$)/g, '$1$2<li>$4</li>$5');
+          // Handle list formatting
+          if (listType === 'bullet' || listType === 'numbered') {
+            // Split by line breaks to create list items
+            const lines = content.split('\n').filter(line => line.trim());
+            if (lines.length > 0) {
+              const listTag = listType === 'numbered' ? 'ol' : 'ul';
+              const listItems = lines.map(line => `<li>${line.trim()}</li>`).join('');
+              formatted = `<${listTag}>${listItems}</${listTag}>`;
+            }
+          } else {
+            // Regular text formatting - convert line breaks to <br> tags
+            formatted = content.replace(/\n/g, '<br>');
+          }
           
-          // Handle numbered lists (lines starting with numbers followed by . or ))
-          formatted = formatted.replace(/(<br>|^)(\s*)(\d+[.)]\s+)([^<]*?)(<br>|$)/g, '$1$2<li>$4</li>$5');
-          
-          // Wrap consecutive <li> elements in <ul> or <ol>
-          formatted = formatted.replace(/(<li>.*?<\/li>(?:<br>)*)+/g, (match) => {
-            // Check if it contains numbered items
-            const hasNumbers = /\d+[.)]\s+/.test(match);
-            const listType = hasNumbers ? 'ol' : 'ul';
-            return `<${listType}>${match.replace(/<br>/g, '')}</${listType}>`;
-          });
-          
-          // Then process links if any
-          if (links.length) {
+          // Process links if any
+          if (links && links.length > 0 && listType !== 'bullet' && listType !== 'numbered') {
             let result = formatted;
             let offset = 0;
             
@@ -1107,10 +1147,10 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                 textDecoration: block.formatting?.underline ? 'underline' : 'none',
                 textAlign: block.formatting?.textAlign || 'left',
                 lineHeight: block.formatting?.lineHeight || 1.5,
-                whiteSpace: 'pre-wrap'
+                whiteSpace: block.formatting?.listType === 'bullet' || block.formatting?.listType === 'numbered' ? 'normal' : 'pre-wrap'
               }}
               dangerouslySetInnerHTML={{ 
-                __html: renderTextWithLinks(block.content, block.links) 
+                __html: renderTextWithLinks(block.content, block.links, block.formatting?.listType) 
               }}
             />
           </div>
@@ -1236,13 +1276,27 @@ export default function VisualLessonBuilder({ blocks, onBlocksChange, onSave, on
                                     textDecoration: colBlock.formatting?.underline ? 'underline' : 'none',
                                     textAlign: colBlock.formatting?.textAlign || 'left',
                                     lineHeight: colBlock.formatting?.lineHeight || 1.5,
-                                    whiteSpace: 'pre-wrap'
+                                    whiteSpace: colBlock.formatting?.listType === 'bullet' || colBlock.formatting?.listType === 'numbered' ? 'normal' : 'pre-wrap'
                                   }}
                                   dangerouslySetInnerHTML={{ 
                                     __html: (() => {
-                                      if (!colBlock.links?.length) return colBlock.content;
+                                      const listType = colBlock.formatting?.listType;
+                                      let formatted = colBlock.content;
                                       
-                                      let result = colBlock.content;
+                                      // Handle list formatting
+                                      if (listType === 'bullet' || listType === 'numbered') {
+                                        const lines = colBlock.content.split('\n').filter(line => line.trim());
+                                        if (lines.length > 0) {
+                                          const listTag = listType === 'numbered' ? 'ol' : 'ul';
+                                          const listItems = lines.map(line => `<li>${line.trim()}</li>`).join('');
+                                          return `<${listTag}>${listItems}</${listTag}>`;
+                                        }
+                                      }
+                                      
+                                      // Handle links for non-list content
+                                      if (!colBlock.links?.length) return formatted.replace(/\n/g, '<br>');
+                                      
+                                      let result = formatted;
                                       let offset = 0;
                                       
                                       colBlock.links.forEach(link => {

@@ -4,7 +4,18 @@ import { api } from '../../api/client'
 
 type Block =
   | { type: 'video'; url: string }
-  | { type: 'text'; content: string }
+  | { type: 'text'; content: string; formatting?: {
+      fontFamily?: string;
+      fontSize?: number;
+      color?: string;
+      backgroundColor?: string;
+      bold?: boolean;
+      italic?: boolean;
+      underline?: boolean;
+      textAlign?: 'left' | 'center' | 'right' | 'justify';
+      lineHeight?: number;
+      listType?: 'none' | 'bullet' | 'numbered';
+    }; links?: Array<{ id: string; text: string; url: string; start: number; end: number }> }
   | { type: 'quiz'; question: string; options: string[]; answerIndex: number }
   | { type: 'fillblank'; prompt: string; answer: string }
   | { type: 'image'; url: string; alt: string; caption?: string; width?: number; height?: number }
@@ -13,27 +24,21 @@ type Block =
   | { type: 'documents'; title: string; documents: Array<{ id: string; name: string; url: string; size: number; type: string }> }
 
 // Function to render text with formatting (line breaks, bullets, numbering)
-const renderTextWithFormatting = (content: string): string => {
+const renderTextWithFormatting = (content: string, listType?: 'none' | 'bullet' | 'numbered'): string => {
   if (!content) return '';
   
-  // First, convert line breaks to <br> tags
-  let formatted = content.replace(/\n/g, '<br>');
+  // Handle explicit list formatting
+  if (listType === 'bullet' || listType === 'numbered') {
+    const lines = content.split('\n').filter(line => line.trim());
+    if (lines.length > 0) {
+      const listTag = listType === 'numbered' ? 'ol' : 'ul';
+      const listItems = lines.map(line => `<li>${line.trim()}</li>`).join('');
+      return `<${listTag}>${listItems}</${listTag}>`;
+    }
+  }
   
-  // Handle bullet points (lines starting with - or •)
-  formatted = formatted.replace(/(<br>|^)(\s*)([-•]\s+)([^<]*?)(<br>|$)/g, '$1$2<li>$4</li>$5');
-  
-  // Handle numbered lists (lines starting with numbers followed by . or ))
-  formatted = formatted.replace(/(<br>|^)(\s*)(\d+[.)]\s+)([^<]*?)(<br>|$)/g, '$1$2<li>$4</li>$5');
-  
-  // Wrap consecutive <li> elements in <ul> or <ol>
-  formatted = formatted.replace(/(<li>.*?<\/li>(?:<br>)*)+/g, (match) => {
-    // Check if it contains numbered items
-    const hasNumbers = /\d+[.)]\s+/.test(match);
-    const listType = hasNumbers ? 'ol' : 'ul';
-    return `<${listType}>${match.replace(/<br>/g, '')}</${listType}>`;
-  });
-  
-  return formatted;
+  // Convert line breaks to <br> for regular text
+  return content.replace(/\n/g, '<br>');
 };
 
 export default function LessonView(){
@@ -130,7 +135,23 @@ export default function LessonView(){
       {/* Lesson content */}
       {blocks.map((b, i) => (
         <div key={i} className="card">
-          {b.type==='text' && <div dangerouslySetInnerHTML={{ __html: renderTextWithFormatting(b.content) }} />}
+          {b.type==='text' && (
+            <div 
+              style={{
+                fontFamily: b.formatting?.fontFamily || 'Arial, sans-serif',
+                fontSize: b.formatting?.fontSize ? `${b.formatting.fontSize}px` : '1em',
+                color: b.formatting?.color || '#000000',
+                backgroundColor: b.formatting?.backgroundColor || 'transparent',
+                fontWeight: b.formatting?.bold ? 'bold' : 'normal',
+                fontStyle: b.formatting?.italic ? 'italic' : 'normal',
+                textDecoration: b.formatting?.underline ? 'underline' : 'none',
+                textAlign: b.formatting?.textAlign || 'left',
+                lineHeight: b.formatting?.lineHeight || 1.5,
+                whiteSpace: b.formatting?.listType === 'bullet' || b.formatting?.listType === 'numbered' ? 'normal' : 'pre-wrap'
+              }}
+              dangerouslySetInnerHTML={{ __html: renderTextWithFormatting(b.content, b.formatting?.listType) }} 
+            />
+          )}
           {b.type==='heading' && (
             (() => {
               const HeadingTag = `h${b.level}` as keyof JSX.IntrinsicElements;
@@ -168,7 +189,23 @@ export default function LessonView(){
                         {(() => {
                           switch (colBlock.type) {
                             case 'text':
-                              return <div dangerouslySetInnerHTML={{ __html: renderTextWithFormatting(colBlock.content) }} />;
+                              return (
+                                <div 
+                                  style={{
+                                    fontFamily: colBlock.formatting?.fontFamily || 'Arial, sans-serif',
+                                    fontSize: colBlock.formatting?.fontSize ? `${colBlock.formatting.fontSize}px` : '1em',
+                                    color: colBlock.formatting?.color || '#000000',
+                                    backgroundColor: colBlock.formatting?.backgroundColor || 'transparent',
+                                    fontWeight: colBlock.formatting?.bold ? 'bold' : 'normal',
+                                    fontStyle: colBlock.formatting?.italic ? 'italic' : 'normal',
+                                    textDecoration: colBlock.formatting?.underline ? 'underline' : 'none',
+                                    textAlign: colBlock.formatting?.textAlign || 'left',
+                                    lineHeight: colBlock.formatting?.lineHeight || 1.5,
+                                    whiteSpace: colBlock.formatting?.listType === 'bullet' || colBlock.formatting?.listType === 'numbered' ? 'normal' : 'pre-wrap'
+                                  }}
+                                  dangerouslySetInnerHTML={{ __html: renderTextWithFormatting(colBlock.content, colBlock.formatting?.listType) }} 
+                                />
+                              );
                             case 'heading':
                               const HeadingTag = `h${colBlock.level}` as keyof JSX.IntrinsicElements;
                               return (
