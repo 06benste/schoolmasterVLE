@@ -12,28 +12,27 @@ import path from 'path';
 
 export const userRoutes = Router();
 
-// Generate a random temporary password
+// Generate a memorable temporary password (e.g., "BlueElephant2024")
 function generateTempPassword(): string {
-  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-  const numbers = '0123456789';
-  const special = '!@#$%&*';
+  const adjectives = [
+    'Happy', 'Quick', 'Bright', 'Swift', 'Bold', 'Calm', 'Brave', 'Clever',
+    'Eager', 'Fair', 'Gentle', 'Kind', 'Lively', 'Mighty', 'Noble', 'Proud',
+    'Wise', 'Warm', 'Cool', 'Fresh', 'Great', 'Grand', 'Smart', 'Strong',
+    'Blue', 'Green', 'Gold', 'Silver', 'Ruby', 'Red', 'Orange', 'Purple'
+  ];
   
-  // Ensure at least one of each character type
-  let password = '';
-  password += uppercase[Math.floor(Math.random() * uppercase.length)];
-  password += lowercase[Math.floor(Math.random() * lowercase.length)];
-  password += numbers[Math.floor(Math.random() * numbers.length)];
-  password += special[Math.floor(Math.random() * special.length)];
+  const nouns = [
+    'Eagle', 'Tiger', 'Lion', 'Bear', 'Wolf', 'Fox', 'Hawk', 'Owl',
+    'Dolphin', 'Whale', 'Shark', 'Dragon', 'Phoenix', 'Falcon', 'Raven',
+    'Mountain', 'River', 'Ocean', 'Forest', 'Cloud', 'Star', 'Moon', 'Sun',
+    'Thunder', 'Storm', 'Wind', 'Fire', 'Earth', 'Sky', 'Tree', 'Rock'
+  ];
   
-  // Add remaining random characters (total length: 12)
-  const allChars = uppercase + lowercase + numbers + special;
-  for (let i = 0; i < 8; i++) {
-    password += allChars[Math.floor(Math.random() * allChars.length)];
-  }
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const number = Math.floor(Math.random() * 9000) + 1000; // 4-digit number
   
-  // Shuffle the password
-  return password.split('').sort(() => Math.random() - 0.5).join('');
+  return `${adjective}${noun}${number}`;
 }
 
 // Configure multer for CSV file uploads
